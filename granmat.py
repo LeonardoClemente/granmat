@@ -12,6 +12,9 @@ import subprocess
 import pickle as pl
 import random
 import math
+import numpy as np
+import math as mt
+
 
 '''
 granMat BETA.
@@ -119,7 +122,7 @@ def packYZ(ly,lz,r,N):
 
 	return partCont, radii, lx, fixedVelArr
 
-def cylinderYZ(particles,radii,fixVelArr,radCyl,c,nSides,lz):
+def cylinderYZold(particles,radii,fixVelArr,radCyl,c,nSides,lz):
 	'''
 	#inserts cylinder obstacle within granular material and displaces particles within the obstacle 
 	geometry to the top of the container. obstacle extends towards z direction with geometry center 
@@ -259,7 +262,7 @@ def PorosityCube(xcube, lcube, xspheres, rspheres, N):
     # Return porosity
     return Ninside/Npoints
 
-def cylinderYZnew(particles,radii,fixVelArr,radCyl,c,nSides,lz):
+def cylinderYZ(particles,radii,fixVelArr,radCyl,c,nSides,lz):
 	'''
 	#inserts cylinder obstacle within granular material and displaces particles within the obstacle 
 	geometry to the top of the container. obstacle extends towards z direction with geometry center 
@@ -356,3 +359,88 @@ def cylinderYZnew(particles,radii,fixVelArr,radCyl,c,nSides,lz):
 
 
 	return particles,radii,fixVelArr,nCyl
+
+
+def brakeWalls(radii,particles,fixVelArr,nWalls,lWalls,relativeRes,wallSepX,lx, ly, lz):
+
+	'''
+	radii = vector containing information about particles radius
+	particles = vector containing particle positions
+	fixVelArr = information about particles kind (static/moving)
+	nWalls = Number of obstacle walls
+	lWalls = length of walls
+	relativeRes = sets wall particles size relative to the smallest moving particle in vector particles. e.g. if relativeRes= 		5, particles from walls will be (approximately) 5 times smaller than the smallest moving particle.
+	wallSepX = separation from walls at X dimension (heigth)
+	lx,ly,lz = container dimensions
+
+	'''
+	
+
+	r=np.amin(radii)
+	# Encontrando diametro de esfera
+	rRes=(r/relativeRes)
+	divisor=lWalls/rRes
+	divisorInt=mt.floor(divisor)
+	rem=divisor-divisorInt
+	if rem>0 :
+		diametroExtra=rem*rRes/divisorInt;
+		rRes=rRes+diametroExtra
+
+	wallSphD=rRes
+
+	ny=round(lWalls/wallSphD)
+	nz=lz/wallSphD
+	nzInt=int(mt.floor(nz))
+	rem=nz-nzInt
+
+
+	if rem > 0 :
+		dSepZ=(rem*wallSphD)/(nzInt+1) #Distancia que hay entre cada una de las esferas en Z
+	else :
+		dSepZ=0
+	
+	nSph=int(nzInt*ny)
+	block=np.zeros((nSph,3))
+	tempBlock=block
+	row=np.zeros((ny,3))
+	for i in range(0,int(ny)):
+		row[i,:]=(0,i*wallSphD,0)
+	
+	for i in range(0,nzInt):
+		row[:,2]=i*(wallSphD)+(i+1)*dSepZ
+
+		block[i*ny:(i+1)*ny,:]=row
+
+	wallSepY = (ly - nWalls*lWalls)/(nWalls+1)
+	block[:,1]=block[:,1]+wallSphD/2
+
+	wallsCoord=np.zeros((nWalls*nSph,3))
+	newFixVelArr=np.zeros((nWalls*nSph,1))
+	newFixVelArr[:,0]=-1;
+	newRadii=np.zeros((nWalls*nSph,1))
+	newRadii[:,0]=wallSphD;
+
+	l1=wallSepX+wallSphD
+	l2=wallSphD/2
+
+	for i in range(0,nWalls) :
+		tempBlock=np.zeros((nSph,3))
+		tempBlock[:,1]=block[:,1]+(i+1)*(wallSepY)+i*(lWalls)
+		if i%2 == 0 :
+			tempBlock[:,0]=l1
+		else :
+			tempBlock[:,0]=l2
+		tempBlock[:,2]=block[:,2]
+		wallsCoord[nSph*i:nSph*(i+1),:]=tempBlock;
+		del tempBlock
+
+	# Translating particles
+	L=wallSepX+2*wallSphD
+	particles[:,0]=particles[:,0]+L
+
+	# Packing all particles together
+	particles=np.concatenate((wallsCoord,particles),axis=0);
+	radii=np.concatenate((newRadii,radii),axis=0);
+	fixVelArr=np.concatenate((newFixVelArr,fixVelArr),axis=0);
+	
+	return particles, radii, fixVelArr
