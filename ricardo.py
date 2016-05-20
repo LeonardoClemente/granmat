@@ -22,7 +22,7 @@ rho = 14
 m = V*rho
 fcK = .0052/(m*9.8)
 fcGamma = mt.sqrt(.0052*9.8)
-fcD = 1/0052
+fcD = 1/.0052
 fcF = 1/(9.8*m)
 fcT = mt.sqrt(9.8/.0052)
 
