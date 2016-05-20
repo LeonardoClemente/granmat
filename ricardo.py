@@ -4,71 +4,65 @@ import granmat as gm
 import sphere
 import fractions
 
-#Parametros de experimento
-nExperimentos=1;
-nameExperiments='exp1';
-N=32500;
-#parametros particula
-r=.0052/2;
-dx=2.1*r;
-#dimensiones contenedor
-lx= int(.75/dx)*dx;
-ly=int(.30/dx)*dx;
-lz=(4*dx);
+# Parametros de experimento
+nExperimentos = 1
+nameExperiments = 'exp1'
+N = 32500
+# Parametros particula
+r = .0052/2
+dx = 2.1*r
+# dimensiones contenedor
+lx = int(.75/dx)*dx
+ly = int(.30/dx)*dx
+lz = 4*dx
 
-#Factores de conversion
-V=((0.0052/2)**3)*mt.pi*4/3
-rho=14;
-m=V*rho;
-fcRho=100000 
-fcK=.0052/(m*9.8) 
-fcGamma=mt.sqrt(.0052*9.8)
-fcD=1/0052
-fcF=(1/(9.8*m))
-fcT=mt.sqrt(9.8/.0052)
+# Factores de conversion
+V = (r**3)*mt.pi*4/3
+rho = 14
+m = V*rho
+fcK = .0052/(m*9.8)
+fcGamma = mt.sqrt(.0052*9.8)
+fcD = 1/0052
+fcF = 1/(9.8*m)
+fcT = mt.sqrt(9.8/.0052)
 
 '''
 INICIO DE FUNCION
 Generando paredes
 
-crea primer bloque de paredes. Las paredes estan hechas de esferas con un diametro 'WallSph' 
-relativo al radio minimo de las particulas a simular en Sphere y determinado por el termino 
-'relativeRes'. relativeRes es un parametro que indica en aproximacion la proporcion de tamano 
-entre las particulas que simulan la pared y las particulas con el radio minimo. Una cantidad de 
-10 indica una relacion aproximada de 10:1.  
+crea primer bloque de paredes. Las paredes estan hechas de esferas con un
+diametro 'WallSph' relativo al radio minimo de las particulas a simular en
+Sphere y determinado por el termino 'relativeRes'. relativeRes es un parametro
+que indica en aproximacion la proporcion de tamano entre las particulas que
+simulan la pared y las particulas con el radio minimo. Una cantidad de 10
+indica una relacion aproximada de 10:1.
 '''
 
-nWalls=9
-lWalls=0.005
-relativeRes=5;
-wallSepX=.052
-
-
-
-
+nWalls = 9
+lWalls = 0.005
+relativeRes = 5
+wallSepX = .052
 
 '''
-#FUERA DEL CICLO GENERAR LA PRIMERA SIMULACION QUE DEPOSITA LAS PARTICULAS EN UN CONTENEDOR SIN OBSTACULOS.
-#PARAMETROS SPHERE. TIEMPO NECESARIO PARA ESTABILIZACION: 1 segundo? 
+FUERA DEL CICLO GENERAR LA PRIMERA SIMULACION QUE DEPOSITA LAS PARTICULAS EN UN
+CONTENEDOR SIN OBSTACULOS.
+PARAMETROS SPHERE.
+TIEMPO NECESARIO PARA ESTABILIZACION: 1 segundo?
 '''
 
+particles, radii, minlx, fixVelArr = gm.packYZ(ly, lz, r, N)
 
 
-particles,radii, minlx, fixVelArr = gm.packYZ(ly,lz,r,N);
+# Encontrando diametro de esfera
+rRes = r/relativeRes
+divisor = lWalls/rRes
+divisorInt = mt.floor(divisor)
+rem = divisor-divisorInt
+if rem > 0:
+	diametroExtra = rem*rRes/divisorInt
+	rRes = rRes+diametroExtra
 
-
-
-
-#Encontrando diametro de esfera
-rRes=(r/relativeRes)
-divisor=lWalls/rRes
-divisorInt=mt.floor(divisor)
-rem=divisor-divisorInt
-if rem>0 :
-	diametroExtra=rem*rRes/divisorInt;
-	rRes=rRes+diametroExtra
-
-wallSphD=rRes
+wallSphD = rRes
 
 
 
@@ -83,7 +77,7 @@ if rem > 0 :
 	dSepZ=(rem*wallSphD)/(nzInt+1) #Distancia que hay entre cada una de las esferas en Z
 else :
 	dSepZ=0
-	
+
 
 
 
@@ -94,7 +88,7 @@ tempBlock=block
 row=np.zeros((ny,3))
 for i in range(0,int(ny)):
 	row[i,:]=(0,i*wallSphD,0)
-	
+
 
 
 
@@ -177,7 +171,7 @@ SBB.g[0] = -9.8/9.8
 SBB.g[1] = 0.0
 SBB.g[2] = 0.0
 
- 
+
 ### SETTING MATERIAL PROPERTIES
 
 SBB.mu_s[0] = 0.4
@@ -187,7 +181,7 @@ SBB.k_n[0] = 4084 #535 #1.0e4 #la constante 535 corresponde a la usada por Ricar
 SBB.k_t[0] = 4084
 
 
-#calculando gamma 
+#calculando gamma
 eps=.5
 mEff=(m**2)/(2*m)
 s=((.5*np.log(eps)*mt.pi)**2+1)/mEff
@@ -227,4 +221,3 @@ SBB.run(dry = True)
 # Start the simulation on the GPU from the sphere program
 SBB.run()
 SBB.writeVTKall()
-
