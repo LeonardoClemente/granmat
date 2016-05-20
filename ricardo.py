@@ -23,7 +23,7 @@ m=V*rho;
 fcRho=100000 
 fcK=.0052/(m*9.8) 
 fcGamma=mt.sqrt(.0052*9.8)
-fcD=mt.sqrt(1/.0052)
+fcD=1/0052
 fcF=(1/(9.8*m))
 fcT=mt.sqrt(9.8/.0052)
 
@@ -180,16 +180,6 @@ SBB.g[2] = 0.0
  
 ### SETTING MATERIAL PROPERTIES
 
-#Factores de conversion
-V=((0.0052/2)**3)*mt.pi*4/3
-rho=14;
-m=V*rho;
-fcK=.0052/(m*9.8) 
-fcGamma=mt.sqrt(.0052*9.8)
-fcD=mt.sqrt(1/.0052)
-fcF=(1/(9.8*m))
-
-
 SBB.mu_s[0] = 0.4
 SBB.mu_d[0] = 0.4
 SBB.rho[0] = 14
@@ -237,47 +227,4 @@ SBB.run(dry = True)
 # Start the simulation on the GPU from the sphere program
 SBB.run()
 SBB.writeVTKall()
-
-
-'''PART 2 SCRIPT'''
-
-
-r=.0052/2*fcD;
-dx=2.1*r*fcD;
-#dimensiones contenedor
-lx= int(.75/dx)*dx*fcD;
-ly=int(.30/dx)*dx*fcD;
-lz=(4*dx)*fcD;
-# Create a sphere object with two preallocated particles and a simulation ID
-simID = 'wallTest32500dep'
-
-SB = sphere.sim(np = np.size(particles,axis=0), sid = simID);
-SB.readlast()
-minlx=np.amax(SB.x[:,0])
-print minlx
-
-if minlx < lx :
-
-	SB.defineWorldBoundaries(L=np.array([lx,ly,lz]),origo = [0,0,0], dx=dx) #quitar el *4
-	#SIMULACION
-	SB.sid='wallTest32500sim'
-	SB.periodicBoundariesX()
-
-	# Define the temporal parameters, e.g. the total time (total) and the file
-	# output interval (file_dt), both in seconds
-	SB.initTemporal(total = 1.5, file_dt = .005, dt=0.5e-6)
-	# Using a 'dry' run, the sphere main program will display important parameters.
-	# sphere will end after displaying these values.
-	SB.run(dry = True)
-	### RUNNING THE SIMULATION
-	# Start the simulation on the GPU from the sphere program
-	SB.run()
-	SB.writeVTKall()
-else :
-	print 'Particles height in stand-by position is bigger than desired box height. Exitting'
-
-
-
-
-
 
