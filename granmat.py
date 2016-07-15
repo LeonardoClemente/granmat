@@ -14,7 +14,7 @@ import random
 import math
 import numpy as np
 import math as mt
-
+import pickle
 
 '''
 granMat BETA.
@@ -357,7 +357,8 @@ def cylinderYZ(particles,radii,fixVelArr,radCyl,c,nSides,lz):
 		L=highest-lowest+maxrad*1.01;
 		particles[particlesIn,0]=particles[particlesIn,0]+L*1.1;
 
-
+	print "Number of particles per cylinder:", nCyl
+	print "Cylinder coordinates", cylinderCord
 	return particles,radii,fixVelArr,nCyl
 
 
